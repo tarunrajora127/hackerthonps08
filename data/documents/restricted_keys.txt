@@ -1,0 +1,6 @@
+Production Master Encryption Key Secrets
+Classification: RESTRICTED
+Key ID: KMS-PROD-MASTER-KEY-009823
+Hardware Security Module (HSM) Slot: 0x4F
+Requires Board-Level Authorization and Dual-Custodian Approval.
+

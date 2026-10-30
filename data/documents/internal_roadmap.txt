@@ -1,0 +1,5 @@
+Syntaxis Technologies Internal Engineering Roadmap - Q4
+Classification: INTERNAL
+Priority projects for Q4 include scaling our backend microservices and implementing zero-trust authentication.
+Distribution: Syntaxis employees only.
+

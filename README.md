@@ -1,121 +1,147 @@
-<div align="center">
+# AGENTGATE: Security Gateway for AI Actions and Information-Flow Control
+**Achithon 2026 — Problem Statement 08 (PS08)**
 
-# Hackathon Problem-Solving Workspace
+[![Tests](https://img.shields.io/badge/pytest-15%20passed-brightgreen.svg)](tests/)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B.svg)](app.py)
+[![Zero--Trust](https://img.shields.io/badge/Security-Default--Deny-red.svg)](agentgate/core/)
 
-**One repository. Ten problem statements. One focused solution at a time.**
-
-A clean starting point for choosing a challenge, building against its official specification, and preparing an evaluable submission.
-
-</div>
+AGENTGATE is an independent, zero-trust security gateway that evaluates, intercepts, and audits AI-proposed tool actions before execution. It enforces Bell-LaPadula multilevel sensitivity lattices, information-flow restrictions, persistent provenance tracking across workflow boundaries, and strict exfiltration boundaries—preventing prompt-injection exploits from compromising data confidentiality.
 
 ---
 
-## Welcome
-
-This repository contains ten independent hackathon problem statements in the top-level folders **`PS01` through `PS10`**. Choose one problem statement (PS) to work on. The shared agent instructions are designed to help an AI coding agent understand the selected challenge, respect its evaluation contract, and keep the working checkout focused.
-
-> **Important:** Once you confirm your choice and the disclosed cleanup scope, the agent is instructed to delete the other PS folders from the current checkout. The selected PS folder and files outside the other top-level `PS##` folders are preserved. Make sure you are comfortable with this before confirming.
-
-## Problem statements
-
-| ID | Problem title | Specification |
-|---|---|---|
-| `PS01` | Explainable Application Privacy and Permission Analyzer | See `PS01.md` |
-| `PS02` | Automated Invoice and Payment Reconciliation Dashboard | See `PS02.md` |
-| `PS03` | Targeted Model-Repair and Regression-Evaluation Pipeline | See `PS03.md` |
-| `PS04` | Offline-First Multimodal AI Assistant for Healthcare | See `PS04.md` |
-| `PS05` | Automated Multi-Agent Codebase Vulnerability and Dependency Graph Auditor | See `PS05.md` |
-| `PS06` | FAIRSHIFT: Auditable Allocation and Decision-Support System | See `PS06.md` |
-| `PS07` | REPROTRACE: Pipeline Observability and Reproducibility Tool | See `PS07.md` |
-| `PS08` | AGENTGATE: Security Gateway for AI Actions and Information-Flow Control | See `PS08.md` |
-| `PS09` | FORGETGRAPH: Dependency-Aware Deletion Orchestrator for ML Pipelines | See `PS09.md` |
-| `PS10` | Open Innovation: Hardware / Embedded Systems / IoT Solution | See `PS10.md` |
-
-Replace the placeholder titles and specification links above with the official details in the problem folders. The authoritative statement inside the selected folder defines the challenge requirements.
-
-## Getting started
-
-1. Open the repository and review the available folders and problem statement titles.
-2. Tell your coding agent which PS you want to work on. The agent should list the available PS folders and their exact paths before asking you to choose.
-3. Review the agent's confirmation request carefully. It must identify the selected folder and enumerate every other `PS##` folder that will be removed from this checkout.
-4. Confirm only if the selected PS and deletion scope are correct. Before that confirmation, the agent must not delete, move, or clean any PS folder.
-5. After confirmation and cleanup, read the selected problem's specification and follow its setup, build, test, output, and submission requirements.
-
-If you do not want the other PS folders removed, decline the cleanup and ask to continue with the selected PS while retaining them. The agent should not proceed with destructive cleanup without your explicit consent.
-
-## How selection and cleanup work
+## Architecture Overview
 
 ```mermaid
 flowchart TD
-    A[Inspect PS01–PS10 without changing files] --> B[Show IDs, titles, and paths]
-    B --> C[Ask user to choose one PS]
-    C --> D[Show exact other PS folders to be removed]
-    D --> E{User confirms selection and cleanup?}
-    E -- No --> F[Delete nothing; clarify whether to proceed without cleanup]
-    E -- Yes --> G[Keep selected PS and shared repository files]
-    G --> H[Remove only confirmed unselected PS folders]
-    H --> I[Verify repository contents]
-    I --> J[Build and validate against selected PS specification]
+    subgraph Untrusted Layer
+        A[Untrusted Documents / Inputs<br/>e.g. Prompt Injections, Invoices] --> B[AI Agent / LLM<br/>Proposes Tool Operations]
+    end
+
+    subgraph AGENTGATE Security Boundary
+        B -->|Action Proposal: ActionRequest| G{AGENTGATE Gateway}
+        
+        G --> PE[Policy Engine<br/>Clearance & Bell-LaPadula Lattice]
+        G --> IFT[Information-Flow Tracker<br/>Taint Propagation & Provenance]
+        G --> DB[(SQLite: agentgate.db<br/>Audit, Labels, Sessions)]
+        
+        PE -->|Evaluate| Decision{Decision}
+        Decision -->|BLOCK| Intercept[🛑 Interception & Rejection<br/>Tool NEVER Executed]
+        Decision -->|ALLOW| Exec[✅ Dispatch to Protected Tool]
+    end
+
+    subgraph Protected Local Tools
+        Exec --> T1[Tool 1: Document Reader<br/>Reads & validates SHA-256 integrity]
+        Exec --> T2[Tool 2: Report Saver<br/>Enforces label inheritance & anti-downgrade]
+        Exec --> T3[Tool 3: Mock Inbox Delivery<br/>Blocks external exfiltration]
+    end
 ```
-
-The cleanup boundary is limited to the explicitly confirmed, unselected top-level problem folders. Shared code, repository metadata, this README, the top-level `AGENTS.md`, logs, and configuration must remain untouched. Do not use broad wildcard deletion. If you later want to switch to a PS folder that was removed, restore or re-clone it first.
-
-## Repository guide
-
-```text
-.
-├── AGENTS-generalized.md
-├── agent_trace_instructions_generalized.md
-├── README.md
-├── PS01/
-├── PS02/
-├── PS03/
-├── PS04/
-├── PS05/
-├── PS06/
-├── PS07/
-├── PS08/
-├── PS09/
-└── PS10/
-```
-
-Each `PS##/` folder should contain that challenge's participant-facing specification and any allowed starter files or datasets. The actual contents and filenames may differ by problem. Do not assume one PS's input format, output schema, scoring rules, or implementation approach applies to another.
-
-### Agent guidance files
-
-- **`AGENTS-generalized.md`** — primary coding-agent guidance: PS selection and confirmed cleanup, session logging, challenge contract, evaluation safeguards, and cross-platform compatibility. If your coding tool expects a file named `AGENTS.md`, rename or copy this file to that name at the repository root before starting.
-- **`agent_trace_instructions_generalized.md`** — guidance for collecting, reviewing, redacting, and packaging agent traces. Follow the selected PS's submission instructions if they specify a different trace artifact or archive layout.
-
-## Build, test, and submit
-
-There is no single build command or output format shared across all ten problems. After choosing a PS, read its official specification and any README or setup notes in that folder. Use the required language, dependencies, input paths, output schema, runtime interface, and submission artifact exactly as stated there.
-
-Before submitting, verify that:
-
-- The solution uses only allowed inputs and resources.
-- The required output files exist and match the exact specified schema and coverage.
-- The prescribed run and evaluation steps complete successfully.
-- The package contains every required artifact and excludes credentials, secrets, and prohibited files.
-- Any required agent trace or usage report is included in the requested format.
-
-Use the submission URL stated by the selected challenge. Do not guess a URL or substitute a general contest page for an official submission link.
-
-## Safety and working practices
-
-- **Read the selected specification first.** It is authoritative for problem-specific requirements.
-- **Keep secrets out of source control.** Use environment variables or ignored local configuration when the challenge requires credentials.
-- **Protect private data.** Review traces and outputs for API keys, tokens, passwords, cookies, private keys, and sensitive personal information before sharing.
-- **Keep changes scoped.** Work on the selected PS and shared files only; do not bring assumptions or evaluation labels over from another problem.
-- **Retain trace integrity.** Preserve original structured session logs where practical. Redact only sensitive content, and do not include credentials or unrelated application data.
-
-## Contributing or adding problem details
-
-Before using this README as a public project page, replace the placeholder problem titles with the official titles and link each row to the correct participant-facing specification. Add only verified setup and submission information. Keep challenge-specific facts in the relevant `PS##/` folder rather than duplicating them as assumptions in shared instructions.
 
 ---
 
-<div align="center">
+## Key Features
 
-**Choose carefully. Confirm the cleanup scope. Build to the selected specification.**
+1. **Independent Pre-Execution Authorization**:
+   - The AI agent has zero authorization authority.
+   - Every proposed operation is evaluated against the subject's clearance, active policy rules, and content sensitivity before any tool is invoked.
+2. **Bell-LaPadula Multilevel Security (MLS)**:
+   - Sensitivity lattice: `PUBLIC < INTERNAL < CONFIDENTIAL < RESTRICTED`.
+   - *Simple Security Property ("No Read Up")*: Subjects cannot read documents exceeding their clearance.
+   - *Star Property ("No Write Down")*: Reports automatically inherit the supremum (highest classification) of all contributing sources; unauthorized declassification is blocked.
+3. **Workflow Resumption & Taint Persistence**:
+   - Workflow sessions can be paused, checkpointed to SQLite, and resumed without losing security classifications or active taint.
+4. **Prompt-Injection Defense**:
+   - Untrusted documents attempting prompt-injection attacks (e.g. commanding the agent to read secrets and send them to an external adversary) are stopped by the gateway regardless of the AI's internal reasoning.
+5. **Three Protected Local Tools**:
+   - `read_document`: Reads documents, computes SHA-256 hashes, attaches persistent security labels.
+   - `save_report`: Persists derived summaries while inheriting source sensitivity.
+   - `deliver_inbox`: Enforces destination domain clearance and prevents external leakage.
+6. **Immutable SQLite Audit Trail**:
+   - Every decision (`ALLOW` / `BLOCK`), rationale, rule match, and tool outcome is recorded in `agentgate.db`.
+7. **Interactive Streamlit Dashboard**:
+   - Full graphical interface to test tool proposals, run attack scenarios, inspect inboxes, and view live audit trails.
 
-</div>
+---
+
+## Project Structure
+
+```text
+achithon-2026-syntaxis/
+├── agentgate/
+│   ├── core/
+│   │   ├── gateway.py        # Central AgentGate interceptor & dispatcher
+│   │   └── policy_engine.py  # Policy rule evaluation & MLS lattice logic
+│   ├── db/
+│   │   └── database.py       # SQLite persistence (audit, labels, sessions, inboxes)
+│   ├── models/
+│   │   ├── action.py         # ActionType, ActionRequest, payloads
+│   │   ├── audit.py          # AuthorizationDecision, AuditEvent, SessionState
+│   │   ├── policy.py         # PolicyRule, PolicySet, PolicyEvaluationResult
+│   │   └── security.py       # ClassificationLevel, Subject, SecurityLabel
+│   └── tools/
+│       ├── doc_reader.py     # Protected document reading tool
+│       ├── report_saver.py   # Protected report saving tool
+│       └── mock_inbox.py     # Protected mock inbox delivery tool
+├── data/
+│   ├── documents/            # Sample classified & prompt-injected documents
+│   └── reports/              # Storage for saved derived reports
+├── tests/
+│   ├── test_gateway.py       # Gateway authorization & attack mitigation tests
+│   └── test_schemas.py       # Pydantic schema & lattice tests
+├── agentgate.db              # SQLite persistence database
+├── app.py                    # Interactive Streamlit dashboard
+├── init_db.py                # Database initialization script
+├── seed_data.py              # Document label seeding script
+├── requirements.txt          # Python dependencies
+└── log.txt                   # Hackathon turn audit log
+```
+
+---
+
+## Getting Started
+
+### 1. Environment Setup
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/macOS:
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Initialize Database & Seed Labels
+```bash
+python init_db.py
+python seed_data.py
+```
+
+### 3. Run Automated Tests
+```bash
+pytest tests -v
+```
+All 15 tests verify authorization correctness, prompt-injection defense, workflow resumption, and audit completeness.
+
+### 4. Launch Streamlit Dashboard
+```bash
+streamlit run app.py
+```
+Open [http://localhost:8501](http://localhost:8501) in your browser.
+
+---
+
+## Problem Statement 08 Compliance Matrix
+
+| PS08 Specification Requirement | Implementation Location | Test Verification |
+|---|---|---|
+| Separation of trusted policies from untrusted AI proposals | [`agentgate/core/gateway.py`](agentgate/core/gateway.py) | `tests/test_gateway.py` |
+| Evaluation against requester identity, operation, target, recipient | [`agentgate/core/policy_engine.py`](agentgate/core/policy_engine.py) | `tests/test_gateway.py` |
+| Blocking unauthorized actions before execution | `AgentGate.execute()` | `test_blocked_document_read_insufficient_clearance` |
+| Persistent security labels across derivation & storage | [`agentgate/tools/report_saver.py`](agentgate/tools/report_saver.py) | `test_save_report_inherits_classification` |
+| Security restrictions surviving workflow resumption | `AgentGate.pause_session()`, `resume_session()` | `test_workflow_session_persistence_and_resumption` |
+| Three local tools (reading, saving, inbox delivery) | [`agentgate/tools/`](agentgate/tools/) | `test_authorized_document_read`, `test_authorized_internal_delivery` |
+| Streamlit dashboard demonstrating successes, blocks, audit | [`app.py`](app.py) | Manual & UI validation |
+| Automated test suite verifying blocked actions never reach tool | [`tests/`](tests/) | 15 / 15 unit tests passing |
